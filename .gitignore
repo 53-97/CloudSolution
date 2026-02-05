@@ -1,5 +1,9 @@
 # Terraform
 .terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.zip
+.terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan

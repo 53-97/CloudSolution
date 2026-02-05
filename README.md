@@ -111,3 +111,78 @@ terraform destroy -var="telegram_token=<YOUR_TOKEN>"
 - `s3_bucket_name`
 - `dynamodb_table_name`
 - `lambda_role_arn`
+
+---
+
+# Class 9: Observability (CloudWatch)
+
+This section implements production-grade observability using **structured logs**, CloudWatch log groups + retention, and error alerting.
+
+## Structured logging format
+The Lambda logs are written as **JSON lines** (one event per line) with consistent fields:
+
+- `timestamp` (UTC ISO-8601)
+- `level` (`INFO`, `WARNING`, `ERROR`)
+- `request_id` (AWS Lambda request id)
+- `message_id` (Telegram message_id or update_id)
+- `user_id` (Telegram user id)
+- `command` (e.g. `/save`, `/get`, `/files`)
+- `action` (e.g. `incoming_update`, `ddb_put_item`, `s3_put_object`)
+- `outcome` (`success`, `received`, `error`)
+- On errors: `error_type`, `error_message`, `stack_trace`
+
+### Intentional error trigger
+Use:
+```
+/error
+```
+to generate an intentional exception. This is used for alarm verification.
+
+## Log group retention
+CloudWatch log group is managed via Terraform:
+- Log group name: `/aws/lambda/<lambda_function_name>`
+- Retention: **14 days** (finite retention)
+
+**Note:** Lambda may auto-create the log group on first execution. If so, import it once:
+```
+terraform import 'aws_cloudwatch_log_group.telegram_lambda' '/aws/lambda/<function_name>'
+```
+
+## Error metric filter + alarm
+Terraform creates:
+- Metric filter pattern: match structured error logs:
+  - `{ $.level = "ERROR" }`
+- Metric: `CloudSolutionBot/TelegramLambdaErrorCount`
+- Alarm threshold:
+  - **>= 1 error** within **5 minutes**
+  - period: 300 seconds
+  - evaluation periods: 1
+  - treat_missing_data: notBreaching
+
+## How to view logs
+AWS Console:
+- CloudWatch → Logs → Log groups
+- Select `/aws/lambda/<function_name>`
+- Open latest log stream
+
+CLI:
+```
+aws logs tail "/aws/lambda/<function_name>" --follow
+```
+
+## How to view alarm state
+AWS Console:
+- CloudWatch → Alarms → find `<project>-<env>-telegram-lambda-errors`
+
+---
+
+## Evidence
+Screenshots are stored under:
+- `task 8 evidence/` (Class 8 proof)
+- `evidence/` (Class 9 proof)
+
+Required evidence:
+- Log stream showing structured INFO entry
+- Log stream showing structured ERROR entry with stack trace
+- Metric filter showing datapoints
+- Alarm transitioning to ALARM and back to OK
