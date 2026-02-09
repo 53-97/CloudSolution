@@ -15,12 +15,12 @@ terraform {
       version = "~> 3.6"
     }
   }
-  backend "s3" {
-    bucket         = "telebucket-abhishek-2026-01"
-    key            = "telegram-bot/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "telebot-tflock"
-    encrypt        = true
-  }
+  #backend "s3" {
+  #  bucket         = "telebucket-abhishek-2026-01"
+  #  key            = "telegram-bot/terraform.tfstate"
+  #  region         = "us-east-1"
+  #  dynamodb_table = "telebot-tflock"
+  #  encrypt        = true
+  #}
 }
 
