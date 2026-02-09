@@ -25,3 +25,8 @@ venv/
 Thumbs.db
 .vscode/
 .idea/
+
+# Large demo videos (submit separately)
+Images/Final submission/demo.mp4
+
+
